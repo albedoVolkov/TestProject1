@@ -21,7 +21,7 @@ class FilterActivityViewModel @Inject constructor(private val serviceRepository 
 
     //ITEMS
     private var _showItems : List<ServiceUIState> = emptyList()
-    val showItems: List<ServiceUIState> get() = _showItems
+    val showItems: List<ServiceUIState> get() = _showItems// this list is for showing and sorting
 
     private var _mainItems : List<ServiceUIState> = listOf()
     val mainItems: List<ServiceUIState> get() = _mainItems// this list isn't for showing and not sorted
@@ -29,14 +29,39 @@ class FilterActivityViewModel @Inject constructor(private val serviceRepository 
     val data : Flow<List<ServiceUIState>> = serviceRepository.getItemListFlow().asLiveDataFlow()
 
 
+    private var _selectedItemslist : MutableList<ServiceUIState> = mutableListOf()
+    val selectedItemslist: List<ServiceUIState> get() = _selectedItemslist
+
 
 
     private fun <T> Flow<T>.asLiveDataFlow() = shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
+
+    fun addInSelectedItemsList(item : ServiceUIState) {
+        Log.d(TAG, "addInSelectedItemsList : item - $item")
+        if(!selectedItemslist.contains(item)){
+            _selectedItemslist.add(item)
+        }else{
+            Log.d(TAG, "addInSelectedItemsList : item - $item is already in the list")
+        }
+    }
+
+    fun deleteFromSelectedItemsList(item : ServiceUIState) {
+        if(selectedItemslist.contains(item)){
+            _selectedItemslist.remove(item)
+        }else{
+            Log.d(TAG, "deleteFromSelectedItemsList : item - $item wasn't in the list")
+        }
+    }
+
+    fun clearFromSelectedItemsList() {
+        _selectedItemslist.clear()
+    }
 
     fun setListItemsInViewModel(list : List<ServiceUIState>) {
         Log.d(TAG, "setListItemsInViewModel : list - $list")
         _mainItems = list
     }
+
 
     fun filterItems(filterType: String) {
         _showItems = when (filterType) {
@@ -46,6 +71,7 @@ class FilterActivityViewModel @Inject constructor(private val serviceRepository 
             else -> mainItems
         }
     }
+
 
     fun refreshData(){
         viewModelScope.launch {

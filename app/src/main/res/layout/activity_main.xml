@@ -40,7 +40,7 @@
             android:layout_height="40dp"
             android:background="@drawable/selector_btn_1"
             android:gravity="center"
-            android:text="select service"
+            android:text="выбрать сервис"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"

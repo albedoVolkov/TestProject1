@@ -17,10 +17,13 @@ import androidx.lifecycle.viewModelScope
 import com.albedo.testproject1.R
 import com.albedo.testproject1.data.models.CoordinateUIState
 import com.albedo.testproject1.data.models.PinUIState
+import com.albedo.testproject1.data.models.ServiceUIState
 import com.albedo.testproject1.data.models.fromStringToServiceItem
 import com.albedo.testproject1.databinding.ActivityMainBinding
 import com.albedo.testproject1.ui.filter.FilterActivity
 import com.albedo.testproject1.viewmodels.MainActivityViewModel
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.yandex.mapkit.MapKitFactory
 import com.yandex.mapkit.geometry.Point
 import com.yandex.mapkit.map.CameraPosition
@@ -65,12 +68,15 @@ class MainActivity : AppCompatActivity(){
         if (result.resultCode == Activity.RESULT_OK) {
 
             val returnString = result.data?.getStringExtra (Intent.EXTRA_TEXT) ?: ""
-            val service =  fromStringToServiceItem(returnString)
+            val typeToken = object : TypeToken<List<ServiceUIState>>() {}.type
+            val listServiceItem = Gson().fromJson<List<ServiceUIState>>(returnString, typeToken)
 
-            if(service != null) {
-                Log.d(TAG, "onActivityResult : filterItems - ${service.name}")
-                viewModel.setService(service)
-            }else{ Log.d(TAG, "onActivityResult : service - null") }
+            Log.d(TAG, "onActivityResult : listServiceItem - $listServiceItem")
+            if(listServiceItem != null) {
+                viewModel.setListService(listServiceItem)
+            }else{
+                viewModel.setListService(listOf<ServiceUIState>())
+            }
         }
     }
 
@@ -128,8 +134,8 @@ class MainActivity : AppCompatActivity(){
 
         viewModel.data.onEach {
             Log.d(TAG, "mainItems : $it")
-            if(viewModel.service != null){
-                viewModel.filterItems(viewModel.service?.name!!, it)
+            if(viewModel.listService.isNotEmpty()){
+                viewModel.filterItems(viewModel.listService.map { item -> item.name }, it)
             }else {
                 viewModel.filterItems("NONE", it)
             }

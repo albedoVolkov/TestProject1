@@ -29,8 +29,8 @@ class MainActivityViewModel @Inject constructor(private val pinRepository : Pins
 
     private val TAG = "MainActivityViewModel"
 
-    private var _service: ServiceUIState? = null
-    val service: ServiceUIState? get() = _service
+    private var _listService: List<ServiceUIState> = listOf()
+    val listService: List<ServiceUIState> get() = _listService
 
         //ITEMS
         private var _showItems: MutableStateFlow<List<PinUIState>> = MutableStateFlow(listOf())
@@ -48,9 +48,9 @@ class MainActivityViewModel @Inject constructor(private val pinRepository : Pins
         }
 
 
-    fun setService(service: ServiceUIState) {
-        Log.d(TAG, "setService : service - $service")
-        _service = service
+    fun setListService(list: List<ServiceUIState>) {
+        Log.d(TAG, "setListService : list - $list")
+        _listService = list
     }
 
 
@@ -60,14 +60,22 @@ class MainActivityViewModel @Inject constructor(private val pinRepository : Pins
             _showItems.value = when (filterType) {
                 "None" -> emptyList()
                 "All" -> mainItems
-                else -> {
-                    val mainList = mutableListOf<PinUIState>()
-                    for(item in mainItems){
-                        if(item.service == filterType){ mainList.add(item) }
+                else -> emptyList()
+            }
+        }
+
+        fun filterItems(filterType: List<String>, list : List<PinUIState> = mainItems) {
+            _mainItems = list
+            Log.d(TAG, "filterItems : filterType - $filterType, list - $list")
+            val mainList = mutableListOf<PinUIState>()
+            for(item in mainItems){
+                for(filter in filterType) {
+                    if (item.service == filter) {
+                        mainList.add(item)
                     }
-                    mainList
                 }
             }
+            _showItems.value = mainList
         }
 
 

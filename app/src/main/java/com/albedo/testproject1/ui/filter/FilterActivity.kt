@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.albedo.testproject1.data.models.ServiceUIState
 import com.albedo.testproject1.databinding.ActivityFilterBinding
 import com.albedo.testproject1.viewmodels.FilterActivityViewModel
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -58,7 +59,13 @@ class FilterActivity : AppCompatActivity() {
 
     private fun setListeners() {
         binding.toolBarCategoriesFragment.viewToolbarMain.setOnClickListener {
-            sendDataToMainActivity(null)
+            sendDataToMainActivity(listOf())
+            viewModel.clearFromSelectedItemsList()
+        }
+
+        binding.textView1ActivityFilter.setOnClickListener {
+            sendDataToMainActivity(viewModel.selectedItemslist)
+            viewModel.clearFromSelectedItemsList()
         }
     }
 
@@ -71,7 +78,19 @@ class FilterActivity : AppCompatActivity() {
 
             adapter.onClickListener = object : ServiceAdapter.OnClickListener {
                 override fun onClick(itemModel: ServiceUIState) {
-                    sendDataToMainActivity(itemModel)
+                    if(viewModel.selectedItemslist.contains(itemModel)){
+                        viewModel.deleteFromSelectedItemsList(itemModel)
+                    }else{
+                        viewModel.addInSelectedItemsList(itemModel)
+                    }
+
+                    when{
+                        (viewModel.selectedItemslist.isEmpty()) -> {textView1ActivityFilter.text = "нет выбранных сервисов" }
+                        (viewModel.selectedItemslist.size == 1) -> {textView1ActivityFilter.text = "показать 1 сервис" }
+                        (viewModel.selectedItemslist.size >= 2) && (viewModel.selectedItemslist.size < 5) -> {textView1ActivityFilter.text = "показать ${viewModel.selectedItemslist.size} сервиса" }
+                        (viewModel.selectedItemslist.size >= 5) -> {textView1ActivityFilter.text = "показать ${viewModel.selectedItemslist.size} сервисов" }
+                    }
+
                 }
             }
         }
@@ -87,10 +106,11 @@ class FilterActivity : AppCompatActivity() {
 
 
 
-    private fun sendDataToMainActivity(itemData: ServiceUIState?) {
+    private fun sendDataToMainActivity(itemList: List<ServiceUIState>) {
         val intent = Intent()
-        Log.d(TAG, "sendDataToMainActivity : itemData - ${itemData.toString()}")
-        intent.putExtra(Intent.EXTRA_TEXT, itemData?.toString())
+        Log.d(TAG, "sendDataToMainActivity : itemData - $itemList")
+        val mainStringJson = Gson().toJson(itemList)
+        intent.putExtra(Intent.EXTRA_TEXT, mainStringJson)
         setResult(RESULT_OK, intent)
         finish()
     }
